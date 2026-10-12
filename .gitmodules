@@ -1,0 +1,3 @@
+[submodule "maetok"]
+	path = maetok
+	url = https://github.com/Hhhhhhao/continuous_tokenizer

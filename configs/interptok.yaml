@@ -1,0 +1,41 @@
+# InterpTok, the model of the paper. Copy this file and change it to train your own variant.
+
+data: imagenet/train          # ImageNet-1k train split, as <class>/<image> folders
+prepared: prepared            # output folder of prepare.py
+out: runs/interptok
+steps: 41000
+batch: 256                    # images per optimizer step, in micro-batches of 8 images and their 28 mixtures
+seed: 0
+save_every: 1000
+
+decoder_only: false           # train only the decoder, on MAETok's frozen encoder
+grow: 6                       # zero-gated blocks appended to MAETok's 12 decoder blocks
+interp: true                  # false: the tokenizer gets no loss on mixtures, the discriminator still trains on them
+conditional: true             # the interpolation discriminator sees both sources of each mixture
+code_noise: 0.0               # noise augmentation of the reconstructed codes, sigma ~ |N(0, code_noise^2)| as in RAE
+
+# loss weights
+pixel_ratio: 2.0              # pixel mixing ratio loss
+feature_ratio: 0.5            # feature mixing ratio loss
+axis: 0.5                     # distance-matrix alignment
+pred: 0.25                    # latent-CLS alignment
+patch: 0.1                    # decoder-patch alignment
+frechet: 0.3                  # representation Fréchet loss
+frechet_encoders: [siglip, inception, mae]
+
+# The runs of Table 3, as changes to this file:
+#   InterpTok 82k                    steps 82000, resumed from 41k
+#   w/ interpolation                 grow 0; axis, pred, patch, feature_ratio and frechet 0
+#   w/ reg.                          interp false
+#   w/o DINOv3                       axis, pred, patch and feature_ratio 0
+# Decoder only, decoder_only true and steps 13000 unless noted:
+#   MAETok's losses                  grow 0, interp false; axis, pred, patch and frechet 0
+#   w/ interpolation discriminator   grow 0; pixel_ratio, feature_ratio, axis, pred, patch and frechet 0
+#   w/ noise augmentation            as MAETok's losses, and code_noise 0.8
+#   InterpTok                        steps 41000 or 13000
+#   w/o six appended blocks          grow 0
+#   w/o repr. Fréchet loss           frechet 0
+#   w/o Inception                    frechet_encoders [siglip, mae]
+#   w/o pixel mixing ratio loss      pixel_ratio 0
+#   w/o feature mixing ratio loss    feature_ratio 0
+#   w/o source conditioning          conditional false
