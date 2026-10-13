@@ -104,6 +104,7 @@ torchrun --nproc_per_node 8 src/train.py configs/interptok.yaml
 [`configs/interptok.yaml`](configs/interptok.yaml) holds every setting of the paper's model and explains each one. To train a variant, copy it and change it. Its end lists the changes behind each run of Table 3.
 On 8 A100 GPUs, the run takes 72 hours to 41,000 steps.
 Every 1,000 steps it writes the moving average of the tokenizer, `interptok_<step>.safetensors`, and the checkpoint `last.pt`, from which `--resume` continues.
+With `--wandb <project>`, it also logs its losses to [Weights & Biases](https://wandb.ai), after `pip install wandb`.
 
 ### Evaluation
 

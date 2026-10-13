@@ -7,7 +7,7 @@ the checkpoint last.pt, from which --resume continues.
 """
 import argparse
 import os
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import lpips
@@ -297,6 +297,7 @@ def main():
     p = argparse.ArgumentParser(description="Fine-tune MAETok between images into InterpTok.")
     p.add_argument("config", help="a file like configs/interptok.yaml")
     p.add_argument("--resume", help="checkpoint to continue from, such as <out>/last.pt")
+    p.add_argument("--wandb", metavar="PROJECT", help="also log the losses to this Weights & Biases project")
     args = p.parse_args()
     cfg = Config.load(args.config)
 
@@ -312,6 +313,10 @@ def main():
     accum = cfg.batch // (IMAGES * world)
     out = Path(cfg.out)
     out.mkdir(parents=True, exist_ok=True)
+    run = None
+    if rank == 0 and args.wandb:
+        import wandb
+        run = wandb.init(project=args.wandb, name=out.name, config=asdict(cfg))
 
     images = data.Images(cfg.data)
     if (Path(cfg.prepared) / "files.txt").read_text(encoding="utf-8").split("\n") != images.files:
@@ -348,11 +353,16 @@ def main():
         trainer.optimizer_step()
 
         if rank == 0 and step % 25 == 0:
-            print(f"step {step}", *(f"{k} {np.mean([log[k] for log in logs]):.4f}" for k in logs[0]), flush=True)
+            means = {k: float(np.mean([log[k] for log in logs])) for k in logs[0]}
+            print(f"step {step}", *(f"{k} {v:.4f}" for k, v in means.items()), flush=True)
+            if run is not None:
+                run.log(means, step=step)
         if rank == 0 and (step % cfg.save_every == 0 or step == cfg.steps):
             save_file(trainer.ema_state(), out / f"interptok_{step:07d}.safetensors")
             torch.save({"step": step, "batch": cfg.batch, **trainer.state_dict()}, out / "last.pt.tmp")
             os.replace(out / "last.pt.tmp", out / "last.pt")
+    if run is not None:
+        run.finish()
     if distributed:
         dist.destroy_process_group()
 
