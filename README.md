@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <a href="https://arxiv.org/abs/2610.16759">📄 Paper</a> &nbsp;|&nbsp;
   <a href="https://graphics.cs.uni-tuebingen.de/papers/interptok/">🌐 Project Page</a> &nbsp;|&nbsp;
   <a href="https://huggingface.co/CGTuebingen/InterpTok-Models">🤗 Models</a>
 </p>
@@ -160,9 +161,10 @@ To sample a released SiT-B instead, run `generate.py` inside the downloaded `wei
 If you find this work useful, please cite:
 
 ```bibtex
-@misc{beisswenger2026interptok,
+@article{beisswenger2026interptok,
   title   = {Image Tokenizers Should Be Trained Between Images},
   author  = {Bei{\ss}wenger, Ole and Dihlmann, Jan-Niklas and Lensch, Hendrik},
+  journal = {arXiv preprint arXiv:2610.16759},
   year    = {2026}
 }
 ```
